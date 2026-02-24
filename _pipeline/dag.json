@@ -1,0 +1,18 @@
+[
+{
+  "node_name": "raw_data",
+  "depends": []
+},
+{
+  "node_name": "summary_r",
+  "depends": ["raw_data"]
+},
+{
+  "node_name": "summary_py",
+  "depends": ["raw_data"]
+},
+{
+  "node_name": "final_results",
+  "depends": ["summary_py", "summary_r"]
+}
+]

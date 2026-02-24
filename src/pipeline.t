@@ -1,18 +1,52 @@
--- Data: mtcars.csv (pipe-separated) downloaded from rixpress_demos.
+-- tests/pipeline/multi_lang_pipeline.t
+--
+-- This script demonstrates a multi-language pipeline using T, R, and Python.
+-- It satisfies the user request to use the node() function with different runtimes
+-- and custom CSV serializers/deserializers.
+
+-- Note: t_write_csv and t_read_csv are defined in iolib.t and loaded via
+-- the 'functions' argument, just like iolib.R and iolib.py for R and Python.
 
 p = pipeline {
-	-- Load mtcars data (pipe-separated)
-	mtcars = read_csv("data/mtcars.csv", separator = "|")
+    -- NODE 1: T Language
+    -- Load raw mtcars data and serialize it as CSV for other languages to consume.
+    raw_data = node(
+        command = read_csv("data/mtcars.csv", separator = "|"),
+        runtime = T,
+        serializer = t_write_csv,
+        functions = "src/iolib.t"
+    )
 
-	-- Basic stats on miles per gallon
-	avg_mpg = mtcars.mpg |> mean
-	sd_mpg  = mtcars.mpg |> sd
+    -- NODE 2: R Language (using dplyr)
+    -- The <{ ... }> raw code block passes R code verbatim without T parsing.
+    -- Dependencies (raw_data) are auto-detected from identifiers in the block.
+    summary_r = node(
+        command = <{ raw_data |> dplyr::group_by(cyl) |> dplyr::summarize(avg_mpg = mean(mpg)) }>,
+        runtime = R,
+        deserializer = r_read_csv,
+        serializer = r_write_csv,
+        functions = "src/iolib.R"
+    )
 
-	-- Filter to 6-cylinder cars
-	six_cyl = mtcars |> filter($cyl4 == 6)
+    -- NODE 3: Python Language (using pandas)
+    summary_py = node(
+        command = raw_data.groupby("cyl").mean(),
+        runtime = Python,
+        deserializer = py_read_csv,
+        serializer = py_write_csv,
+        functions = "src/iolib.py"
+    )
 
-	-- Average horsepower of 6-cyl cars
-	avg_hp_6cyl = six_cyl.hp |> mean
+    -- NODE 4: T Language
+    -- Collect and combine results from R and Python.
+    final_results = node(
+        command = [r_part: summary_r, py_part: summary_py],
+        runtime = T,
+        deserializer = t_read_csv,
+        functions = "src/iolib.t"
+    )
 }
 
-populate_pipeline(p, build=true)
+-- Build the pipeline
+build_pipeline(p)
+

@@ -2,9 +2,9 @@
   description = "my_project — a T data analysis project";
 
   inputs = {
-    nixpkgs.url = "github:rstats-on-nix/nixpkgs/2026-02-21";
+    nixpkgs.url = "github:rstats-on-nix/nixpkgs/2026-02-24";
     flake-utils.url = "github:numtide/flake-utils";
-    t-lang.url = "github:b-rodrigues/tlang/1ada55065abb6b9db611cf8229d0344eb0279292";
+    t-lang.url = "github:b-rodrigues/tlang/bf1245bd55882e8864e5b8947f99b2cbcdaa8159";
   };
 
   nixConfig = {
@@ -20,11 +20,26 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+
+        # R environment
+        r-env = pkgs.rWrapper.override {
+          packages = with pkgs.rPackages; [
+            dplyr
+            readr
+          ];
+        };
+
+        # Python environment
+        py-env = pkgs.python311.withPackages (python-pkgs: with python-pkgs; [
+          pandas
+        ]);
       in
       {
         devShells.default = pkgs.mkShell {
           buildInputs = [
             t-lang.packages.${system}.default
+            r-env
+            py-env
           ];
 
           shellHook = ''

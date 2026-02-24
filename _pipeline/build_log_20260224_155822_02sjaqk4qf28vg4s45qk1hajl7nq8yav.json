@@ -1,0 +1,43 @@
+{
+  "timestamp": "20260224_155822",
+  "hash": "02sjaqk4qf28vg4s45qk1hajl7nq8yav",
+  "out_path": "/nix/store/02sjaqk4qf28vg4s45qk1hajl7nq8yav-pipeline_output",
+  "nodes": [
+{
+  "node": "raw_data",
+  "path": "/nix/store/02sjaqk4qf28vg4s45qk1hajl7nq8yav-pipeline_output/raw_data/artifact",
+  "runtime": "T",
+  "serializer": "t_write_csv",
+  "class": "DataFrame",
+  "dependencies": [],
+  "success": true
+},
+{
+  "node": "summary_r",
+  "path": "/nix/store/02sjaqk4qf28vg4s45qk1hajl7nq8yav-pipeline_output/summary_r/artifact",
+  "runtime": "R",
+  "serializer": "r_write_csv",
+  "class": "tbl_df",
+  "dependencies": ["raw_data"],
+  "success": true
+},
+{
+  "node": "summary_py",
+  "path": "/nix/store/02sjaqk4qf28vg4s45qk1hajl7nq8yav-pipeline_output/summary_py/artifact",
+  "runtime": "Python",
+  "serializer": "py_write_csv",
+  "class": "DataFrame",
+  "dependencies": ["raw_data"],
+  "success": true
+},
+{
+  "node": "final_results",
+  "path": "/nix/store/02sjaqk4qf28vg4s45qk1hajl7nq8yav-pipeline_output/final_results/artifact",
+  "runtime": "T",
+  "serializer": "default",
+  "class": "Dict",
+  "dependencies": ["summary_py", "summary_r"],
+  "success": true
+}
+]
+}
